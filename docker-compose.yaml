@@ -1,0 +1,77 @@
+services:
+
+  aggregator:
+    build: ./aggregator
+    restart: always
+    environment:
+      KAFKA_BROKER_ADDRESS: kafka:9092
+      WINDOW_DURATION_MS: "3840000"
+      WINDOW_STEP_MS: "1200000"
+
+  dispatcher:
+    build: ./dispatcher
+    restart: always
+    environment:
+      KAFKA_BROKER_ADDRESS: kafka:9092
+      MQTT_HOST: ${MQTT_HOST}
+      MQTT_PORT: ${MQTT_PORT}
+      MQTT_USERNAME: ${MQTT_USERNAME}
+      MQTT_ENABLE_TLS: ${MQTT_ENABLE_TLS}
+
+  test-producer:
+    build: ./test_producer
+    restart: always
+    environment:
+      KAFKA_BROKERS: kafka:9092
+
+  washing-machine-household-5:
+    image: ghcr.io/connected-intelligent-systems/foresight-next-ai-services/nilm:latest
+    environment:
+      APPLIANCE: WM
+      hid: "5"
+
+  kettle-household-5:
+    image: ghcr.io/connected-intelligent-systems/foresight-next-ai-services/nilm:latest
+    environment:
+      APPLIANCE: KTL
+      hid: "5"
+
+  dishwasher-household-5:
+    image: ghcr.io/connected-intelligent-systems/foresight-next-ai-services/nilm:latest
+    environment:
+      APPLIANCE: DW
+      hid: "5"
+
+  fridge-freezer-household-5:
+    image: ghcr.io/connected-intelligent-systems/foresight-next-ai-services/nilm:latest
+    environment:
+      APPLIANCE: FRDFZ
+      hid: "5"
+
+  fridge-microwave-household-5:
+    image: ghcr.io/connected-intelligent-systems/foresight-next-ai-services/nilm:latest
+    ports: 
+      - 8000:8000
+    environment:
+      APPLIANCE: MW
+      hid: "5"
+
+  kafka:
+    image: docker.io/bitnami/kafka:3.7
+    ports:
+      - "9094:9094"
+    volumes:
+      - "kafka_data:/bitnami"
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,PLAINTEXT_LOCALHOST://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_LOCALHOST://localhost:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_LOCALHOST:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+
+volumes:
+  kafka_data:
