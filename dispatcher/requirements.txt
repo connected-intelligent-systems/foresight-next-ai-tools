@@ -1,4 +1,4 @@
-certifi==2024.2.2
+certifi>=2024.07.04
 paho_mqtt==2.1.0
 quixstreams==2.3.3
 Requests==2.32.3
