@@ -109,14 +109,16 @@ def dispatch_message(row: dict):
         - If the response is successful, processes the response JSON and sends connect, attribute, and telemetry messages.
     """
     device_id = message_context().key.decode()
-    response = requests.post(row['url'], json=row['data'])
-    print(f"Response from {row['url']}: {response.status_code}")
-    if response.ok:
+    try:
+        response = requests.post(row['url'], json=row['data'])
+        response.raise_for_status()
         results = response.json()
         id = generate_unique_id(device_id, row['url'])
         send_connect(id)
         send_attribute(id, device_id, row['url'])
         send_telemetry(id, results)
+    except requests.exceptions.RequestException as e:
+        print(f"Error sending request to {row['url']}: {e}")
 
 
 namespace = uuid.UUID("799a6a67-083b-4411-a49f-c8f1acda2ff1")
